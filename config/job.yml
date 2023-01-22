@@ -1,0 +1,15 @@
+$schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
+experiment_name: dev_classifier
+display_name: dev_classifier_exp_4
+code: ../
+command: >-
+  python app.py fit 
+  --config config.yml 
+  --data.mltable_dir ${{inputs.table}}
+inputs:
+  table:
+    type: mltable
+    path: azureml:developerdata:1
+    mode: ro_mount
+environment: azureml:pl-mltable-train-gpu@latest
+compute: azureml:gandalf

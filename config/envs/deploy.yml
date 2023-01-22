@@ -1,0 +1,8 @@
+$schema: https://azuremlschemas.azureedge.net/latest/environment.schema.json
+name: pl-mltable-gpu
+version: 5
+tags:
+  framework: PyTorch Lightning
+  contact: Seth Juarez <seth.juarez@microsoft.com>
+build:
+  path: deploy

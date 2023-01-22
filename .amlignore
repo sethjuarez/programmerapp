@@ -1,0 +1,13 @@
+.git/
+__pycache__/
+.venv/
+.vscode/
+config/
+data/
+gen/
+mlruns/
+notebooks/
+outputs/
+.gitignore
+requirements.txt
+score.py

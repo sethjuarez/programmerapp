@@ -1,0 +1,18 @@
+$schema: https://azuremlschemas.azureedge.net/latest/managedOnlineDeployment.schema.json
+name: blue
+endpoint_name: local-endpoint
+app_insights_enabled: true
+model: azureml:dev-model@latest
+code_configuration:
+  code: ./
+  scoring_script: score.py
+environment: azureml:pl-mltable-gpu@latest
+instance_type: Standard_NC6s_v3
+instance_count: 2
+request_settings:
+  max_concurrent_requests_per_instance: 200
+  max_queue_wait_ms: 100
+  request_timeout_ms: 100
+tags:
+  data_collector.enabled.request: true
+  data_collector.enabled.response: true
