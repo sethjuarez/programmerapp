@@ -1,4 +1,4 @@
-name: dev-model training
+name: training
 
 on:
   workflow_dispatch:
@@ -76,6 +76,6 @@ jobs:
 
         if [[ MODEL_EXISTS -eq 1 ]]; then
           LATEST=$(az ml model show -n ${MODEL_NAME} -l latest --query "version")
-          MODEL_VERSION=$(python ./config/version.py -v $LATEST -t $VERSION_TAG)
+          MODEL_VERSION=$(python ./config/version.py -v $LATEST -t $VERSION_TAG -n)
         fi
         az ml model create --name ${MODEL_NAME} --version $MODEL_VERSION --path azureml://jobs/${JOB_NAME}_${GITHUB_RUN_ID}/outputs/artifacts/outputs/model/
