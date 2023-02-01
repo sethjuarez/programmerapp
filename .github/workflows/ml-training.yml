@@ -80,5 +80,5 @@ jobs:
           LAST_MODEL_VER=$(az ml model list -n ${MODEL_NAME} --query "[].version.to_number(@) | max(@)" | tr -d "\r")
         fi
         # create model from run output
-        az ml model create --name roshambo-model --version $((LAST_MODEL_VER+1)) --path azureml://jobs/${JOB}/outputs/artifacts/outputs/model/
+        az ml model create --name ${MODEL_NAME} --version $((LAST_MODEL_VER+1)) --path azureml://jobs/${JOB}/outputs/artifacts/outputs/model/
 
