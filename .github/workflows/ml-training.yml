@@ -43,8 +43,9 @@ jobs:
           az config set defaults.group=${{secrets.AML_RG}}
     - name: Run Job
       run: |
-          echo az ml job create --file ./config/job.yml --name ${JOB_NAME}_${GITHUB_RUN_ID} --stream 
-          az ml job create --file ./config/job.yml --name ${JOB_NAME}_${GITHUB_RUN_ID} --stream 
+          JOB=${JOB_NAME}-${GITHUB_RUN_ID}
+          echo az ml job create --file ./config/job.yml --name ${JOB} --stream 
+          az ml job create --file ./config/job.yml --name ${JOB} --stream 
   register:
     needs: [experiment]
     runs-on: ubuntu-latest
@@ -72,6 +73,7 @@ jobs:
     - name: Register Model
       id: register
       run: |
+        JOB=${JOB_NAME}-${GITHUB_RUN_ID}
         MODEL_EXISTS=$(az ml model list -o tsv --query "[?name=='${MODEL_NAME}'][name]" |  wc -l)
         MODEL_VERSION=$(python ./config/version.py -v 0 -t $VERSION_TAG)
 
@@ -79,5 +81,5 @@ jobs:
           LATEST=$(az ml model show -n ${MODEL_NAME} -l latest --query "version")
           MODEL_VERSION=$(python ./config/version.py -v $LATEST -t $VERSION_TAG -n)
         fi
-        echo az ml model create --name ${MODEL_NAME} --version $MODEL_VERSION --path azureml://jobs/${JOB_NAME}_${GITHUB_RUN_ID}/outputs/artifacts/outputs/model/
-        az ml model create --name ${MODEL_NAME} --version $MODEL_VERSION --path azureml://jobs/${JOB_NAME}_${GITHUB_RUN_ID}/outputs/artifacts/outputs/model/
+        echo az ml model create --name ${MODEL_NAME} --version ${MODEL_VERSION} --path azureml://jobs/${JOB}/outputs/artifacts/outputs/model/
+        az ml model create --name ${MODEL_NAME} --version ${MODEL_VERSION} --path azureml://jobs/${JOB}/outputs/artifacts/outputs/model/

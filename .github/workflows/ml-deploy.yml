@@ -66,20 +66,22 @@ jobs:
           az config set defaults.group=${{secrets.AML_RG}}
     - name: Add Deployment
       run: |
+        # deployment name
+        DEPLOYMENT_NAME=${ENDPOINT_NAME}-${GITHUB_RUN_ID}
         
         # move scoring script to deployment folder
         cp ./score.py ./config/deploy/score.py
 
         # create deployment
-        az ml online-deployment create --name ${APP_NAME}-${GITHUB_RUN_ID} --endpoint ${ENDPOINT_NAME} -f ./ai/cloud/deploy/deployment.yml
+        az ml online-deployment create --name ${DEPLOYMENT_NAME} --endpoint ${ENDPOINT_NAME} -f ./config/deploy/deployment.yml
         
         # if PROD does not exist, mark this as prod and exit
         PROD_DEPLOYMENT=$(az ml online-endpoint show -n ${ENDPOINT_NAME} -o tsv --query "tags.PROD_DEPLOYMENT")
         
         if [[ -z "$PROD_DEPLOYMENT" ]]; then
             # tag the current deployment as prod and set traffic to 100%
-            az ml online-endpoint update --name ${ENDPOINT_NAME} --traffic "${APP_NAME}-${GITHUB_RUN_ID}=100" --set tags.PROD_DEPLOYMENT=${APP_NAME}_${GITHUB_RUN_ID}
+            az ml online-endpoint update --name ${ENDPOINT_NAME} --traffic "${DEPLOYMENT_NAME}=100" --set tags.PROD_DEPLOYMENT=${DEPLOYMENT_NAME}
         else
-            # modify traffic to siphon 10% to new deployment
-            az ml online-endpoint update -n ${APP_NAME}-app --traffic "$PROD_DEPLOYMENT=90 ${APP_NAME}-${GITHUB_RUN_ID}=10"    
+            # modify traffic to siphon 1% to new deployment
+            az ml online-endpoint update -n ${ENDPOINT_NAME} --traffic "${PROD_DEPLOYMENT}=99 ${DEPLOYMENT_NAME}=1"    
         fi
