@@ -46,6 +46,7 @@ jobs:
           JOB=${JOB_NAME}-${GITHUB_RUN_ID}
           echo az ml job create --file ./config/job.yml --name ${JOB} --stream 
           az ml job create --file ./config/job.yml --name ${JOB} --stream 
+          az ml job update -n ${JOB} --set display_name="${JOB}"
   register:
     needs: [experiment]
     runs-on: ubuntu-latest
@@ -74,12 +75,11 @@ jobs:
       id: register
       run: |
         JOB=${JOB_NAME}-${GITHUB_RUN_ID}
+        LAST_MODEL_VER=0
         MODEL_EXISTS=$(az ml model list -o tsv --query "[?name=='${MODEL_NAME}'][name]" |  wc -l)
-        MODEL_VERSION=$(python ./config/version.py -v 0 -t $VERSION_TAG)
-
         if [[ MODEL_EXISTS -eq 1 ]]; then
-          LATEST=$(az ml model show -n ${MODEL_NAME} -l latest --query "version")
-          MODEL_VERSION=$(python ./config/version.py -v $LATEST -t $VERSION_TAG -n)
+          LAST_MODEL_VER=$(az ml model list -n ${MODEL_NAME} --query "[].version.to_number(@) | max(@)" | tr -d "\r")
         fi
-        echo az ml model create --name ${MODEL_NAME} --version ${MODEL_VERSION} --path azureml://jobs/${JOB}/outputs/artifacts/outputs/model/
-        az ml model create --name ${MODEL_NAME} --version ${MODEL_VERSION} --path azureml://jobs/${JOB}/outputs/artifacts/outputs/model/
+        # create model from run output
+        az ml model create --name roshambo-model --version $((LAST_MODEL_VER+1)) --path azureml://jobs/${JOB}/outputs/artifacts/outputs/model/
+
