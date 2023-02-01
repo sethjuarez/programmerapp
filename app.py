@@ -10,7 +10,6 @@ class ProgrammeroCLI(LightningCLI):
 
     def after_fit(self):
         print('Saving model!')
-        
         best_model = self.trainer.checkpoint_callback.best_model_path
         model = ProgrammerModel.load_from_checkpoint(best_model)
         model_dir = Path(self.trainer.default_root_dir).resolve() / 'model'
