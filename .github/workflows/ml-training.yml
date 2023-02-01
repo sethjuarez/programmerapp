@@ -45,8 +45,7 @@ jobs:
       run: |
           JOB=${JOB_NAME}-${GITHUB_RUN_ID}
           echo az ml job create --file ./config/job.yml --name ${JOB} --stream 
-          az ml job create --file ./config/job.yml --name ${JOB} --stream 
-          az ml job update -n ${JOB} --set display_name="${JOB}"
+          az ml job create --file ./config/job.yml --name ${JOB} --set display_name="${JOB}" --stream
   register:
     needs: [experiment]
     runs-on: ubuntu-latest

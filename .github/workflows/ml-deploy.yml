@@ -41,7 +41,7 @@ jobs:
             echo "endpoint exists"
         fi
   deployment:
-    needs: [endpoint, register]
+    needs: [endpoint]
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -68,7 +68,7 @@ jobs:
       run: |
         # deployment name
         DEPLOYMENT_NAME=${ENDPOINT_NAME}-${GITHUB_RUN_ID}
-        
+
         # move scoring script to deployment folder
         cp ./score.py ./config/deploy/score.py
 
