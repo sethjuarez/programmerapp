@@ -1,0 +1,83 @@
+name: dev-model deploy
+
+on:
+  workflow_dispatch:     
+
+env:
+  JOB_NAME: dev_classifier
+  MODEL_NAME: dev-model
+  ENDPOINT_NAME: dev-endpoint
+
+jobs:
+  endpoint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: add az ml extension
+      run: |
+        az extension add -n ml -y
+    - name: azure login
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_TOKEN}}
+
+    - name: set aml defaults
+      run: |
+          az config set defaults.workspace=${{secrets.AML_WORKSPACE}}
+          az config set defaults.group=${{secrets.AML_RG}}
+    - id: deployments
+      name: check endpoint
+      run: |
+        ENDPOINT_EXISTS=$(az ml online-endpoint list -o tsv --query "[?name=='${APP_NAME}-app'][name]" |  wc -l)
+        if [[ ENDPOINT_EXISTS -ne 1 ]]; then
+            az ml online-endpoint create -n ${APP_NAME}-app -f ./ai/cloud/deploy/endpoint.yml    
+        else
+            echo "endpoint exists"
+        fi
+  deployment:
+    needs: [endpoint, register]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.7
+
+    - name: add az ml extension
+      run: |
+        az extension add -n ml -y
+    - name: azure login
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_TOKEN}}
+
+    - name: set aml defaults
+      run: |
+          az config set defaults.workspace=${{secrets.AML_WORKSPACE}}
+          az config set defaults.group=${{secrets.AML_RG}}
+    - name: Add Deployment
+      run: |
+        
+        # move scoring script to deployment folder
+        cp ./ai/score.py ./ai/cloud/deploy/score.py
+        # create deployment
+        az ml online-deployment create --name ${APP_NAME}-${GITHUB_RUN_ID} --endpoint ${APP_NAME}-app -f ./ai/cloud/deploy/deployment.yml
+        # if PROD does not exist, mark this as prod and exit
+        PROD_DEPLOYMENT=$(az ml online-endpoint show -n ${APP_NAME}-app -o tsv --query "tags.PROD_DEPLOYMENT")
+        if [[ -z "$PROD_DEPLOYMENT" ]]; then
+            # tag the current deployment as prod and set traffic to 100%
+            az ml online-endpoint update --name ${APP_NAME}-app --traffic "${APP_NAME}-${GITHUB_RUN_ID}=100" --set tags.PROD_DEPLOYMENT=${APP_NAME}_${GITHUB_RUN_ID}
+        else
+            # modify traffic to siphon 10% to new deployment
+            az ml online-endpoint update -n ${APP_NAME}-app --traffic "$PROD_DEPLOYMENT=90 ${APP_NAME}-${GITHUB_RUN_ID}=10"    
+        fi

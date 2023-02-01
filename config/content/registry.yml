@@ -1,0 +1,9 @@
+name: tlaloc
+description: Basic registry with one primary region and to additional regions
+tags:
+  maintainer: Seth Juarez
+  contact: seth.juarez@microsoft.com
+location: eastus
+replication_locations:
+  - location: westus2
+  - location: westus3

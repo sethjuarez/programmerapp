@@ -1,0 +1,81 @@
+name: dev-model training
+
+on:
+  workflow_dispatch:
+         
+  push:
+    branches:
+      - main
+    paths:
+      - 'ai/**.py'
+      - 'ai/**.yml'
+      - 'ai/**.yaml'
+
+env:
+  VERSION_TAG: v1
+  JOB_NAME: dev_classifier
+  MODEL_NAME: dev-model
+
+jobs:
+  experiment:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: add az ml extension
+      run: |
+        az extension add -n ml -y
+    - name: azure login
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_TOKEN}}
+
+    - name: set aml defaults
+      run: |
+          az config set defaults.workspace=${{secrets.AML_WORKSPACE}}
+          az config set defaults.group=${{secrets.AML_RG}}
+    - name: Run Job
+      run: |
+          az ml job create --file ./config/job.yml --name ${JOB_NAME}_${GITHUB_RUN_ID} --stream 
+  register:
+    needs: [experiment]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+
+    - name: add az ml extension
+      run: |
+        az extension add -n ml -y
+    - name: azure login
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_TOKEN}}
+
+    - name: set aml defaults
+      run: |
+          az config set defaults.workspace=${{secrets.AML_WORKSPACE}}
+          az config set defaults.group=${{secrets.AML_RG}}
+    - name: Register Model
+      id: register
+      run: |
+        MODEL_EXISTS=$(az ml model list -o tsv --query "[?name=='${MODEL_NAME}'][name]" |  wc -l)
+        MODEL_VERSION=$(python ./config/version.py -v 0 -t $VERSION_TAG)
+
+        if [[ MODEL_EXISTS -eq 1 ]]; then
+          LATEST=$(az ml model show -n ${MODEL_NAME} -l latest --query "version")
+          MODEL_VERSION=$(python ./config/version.py -v $LATEST -t $VERSION_TAG)
+        fi
+        az ml model create --name ${MODEL_NAME} --version $MODEL_VERSION --path azureml://jobs/${JOB_NAME}_${GITHUB_RUN_ID}/outputs/artifacts/outputs/model/

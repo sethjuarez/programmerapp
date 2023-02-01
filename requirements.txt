@@ -14,3 +14,4 @@ mltable
 sklearn
 python-dotenv
 opencensus-ext-azure
+pyarrow
