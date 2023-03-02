@@ -55,7 +55,6 @@ class ProgrammerModel(pl.LightningModule):
         scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
         return [optimizer], [scheduler]
     
-
     def save(self, model_dir: Path, transforms):
 
         if not model_dir.exists():
