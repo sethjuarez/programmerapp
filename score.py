@@ -23,7 +23,7 @@ if 'AML_APP_INSIGHTS_KEY' in os.environ:
 def init():
     global session, transform, classes, logger, model_stamp
     logger.info('initializing...')
-    logger.info(os.environ)
+    #logger.info(os.environ)
     if 'AZUREML_MODEL_DIR' in os.environ:
         root_dir = Path(os.environ['AZUREML_MODEL_DIR']).resolve() / 'model'
     else:

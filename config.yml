@@ -21,12 +21,10 @@ trainer:
     init_args:
       logging_interval: 'step'
   default_root_dir: outputs
-  auto_select_gpus: true
-  gpus: 1
   max_epochs: 100
   logger: true
 model:
-  lr: .1
+  lr: .25
 data:
   mltable_dir: ./data
   batch_size: 256

@@ -1,6 +1,6 @@
 $schema: https://azuremlschemas.azureedge.net/latest/commandJob.schema.json
 experiment_name: dev_classifier
-display_name: dev_classifier_exp_6
+display_name: dev_classifier_exp_10
 code: ../
 command: >-
   python app.py fit 

@@ -11,7 +11,8 @@ inference-schema
 ipykernel
 fibberio
 mltable
-sklearn
+scikit-learn
 python-dotenv
 opencensus-ext-azure
 pyarrow
+onnx
