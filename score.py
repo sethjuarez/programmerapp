@@ -3,9 +3,11 @@ import json
 import time
 import logging
 import datetime
+import pandas as pd
 from pathlib import Path
 import onnxruntime as rt
 import numpy as np
+from azureml.ai.monitoring import Collector
 from inference_schema.schema_decorators import input_schema, output_schema
 from inference_schema.parameter_types.standard_py_parameter_type import StandardPythonParameterType
 
@@ -22,7 +24,16 @@ if 'AML_APP_INSIGHTS_KEY' in os.environ:
 
 def init():
     global session, transform, classes, logger, model_stamp
+    global inputs_collector, outputs_collector, inputs_outputs_collector
     logger.info('initializing...')
+
+    logger.info(f'using onnxruntime version: {rt.__version__}')
+    logger.info('initilizing collectors...')
+    
+    inputs_collector = Collector(name='model_inputs', on_error=lambda e: logging.info("ex:{}".format(e)))                    
+    outputs_collector = Collector(name='model_outputs', on_error=lambda e: logging.info("ex:{}".format(e)))
+    inputs_outputs_collector = Collector(name='model_inputs_outputs', on_error=lambda e: logging.info("ex:{}".format(e))) 
+
     #logger.info(os.environ)
     if 'AZUREML_MODEL_DIR' in os.environ:
         root_dir = Path(os.environ['AZUREML_MODEL_DIR']).resolve() / 'model'
@@ -85,6 +96,10 @@ def run(programmer):
     try:
         v = [get(programmer[x], x) for x in transform.keys() if x in programmer]
 
+        # collect inputs
+        input_df = pd.DataFrame(programmer, index=[0])
+        context = inputs_collector.collect(input_df)
+
         data = {
             'location': np.array([v[0]]).astype('int64'),
             'style': np.array([v[1]]).astype('int64'),
@@ -94,6 +109,12 @@ def run(programmer):
         pred_onnx = session.run(None, data)
         probs = pred_onnx[0][0][0]
 
+        # collect outputs
+        output_df = pd.DataFrame({'accept': 'yes' if probs > 0.5 else 'no', 'yes': probs, 'no': 1 - probs}, index=[0])
+        outputs_collector.collect(output_df, context)
+        inputs_outputs_collector.collect(input_df.join(output_df), context)
+
+        # create payload
         payload = {
             'time': float(0),
             'prediction': 'yes' if probs > 0.5 else 'no',

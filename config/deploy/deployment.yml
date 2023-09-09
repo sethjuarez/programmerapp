@@ -13,6 +13,15 @@ request_settings:
   max_concurrent_requests_per_instance: 200
   max_queue_wait_ms: 100
   request_timeout_ms: 100
-tags:
-  data_collector.enabled.request: true
-  data_collector.enabled.response: true
+data_collector:
+  collections:
+    model_inputs:
+      enabled: 'True'
+    model_outputs:
+      enabled: 'True'
+    model_inputs_outputs:
+      enabled: 'True'
+    request:
+      enabled: 'True'
+    response:
+      enabled: 'True'
