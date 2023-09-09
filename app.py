@@ -6,7 +6,7 @@ from model import ProgrammerModel
 from data import ProgrammerDataModule
 from pytorch_lightning.cli import LightningCLI
 
-class ProgrammeroCLI(LightningCLI):
+class ProgrammerCLI(LightningCLI):
 
     def after_fit(self):
         print('Saving model!')
@@ -20,4 +20,4 @@ if __name__ == '__main__':
     mlflow.pytorch.autolog()
     with mlflow.start_run() as run:
       torch.set_float32_matmul_precision("medium")
-      cli = ProgrammeroCLI(ProgrammerModel, ProgrammerDataModule)
+      cli = ProgrammerCLI(ProgrammerModel, ProgrammerDataModule)
