@@ -23,7 +23,7 @@ class ProgrammerDataset(Dataset):
         }
 
     def minmax(self, col: str):
-        return [self.df[col].min(), self.df[col].max()]
+        return [float(self.df[col].min()), float(self.df[col].max())]
 
     def get(self, row, col: str):
         xform = self.transforms[col]
