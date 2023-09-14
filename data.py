@@ -30,7 +30,7 @@ class ProgrammerDataset(Dataset):
         if isinstance(xform, dict):
             return xform[row[col].lower()]
         elif isinstance(xform, list):
-            return (row[col] - xform[0]) / (xform[1] - xform[0])
+            return float(row[col] - xform[0]) / float(xform[1] - xform[0])
         else:
             return 1 if xform == row[col] else 0
         
