@@ -63,7 +63,7 @@ def get(val, col: str):
     if isinstance(xform, dict):
         return xform[val.lower()]
     elif isinstance(xform, list):
-        return (val - xform[0]) / (xform[1] - xform[0])
+        return float(val - xform[0]) / float(xform[1] - xform[0])
     else:
         return 1 if xform == val else 0
 
@@ -98,6 +98,10 @@ def run(programmer):
 
         # collect inputs
         input_df = pd.DataFrame(programmer, index=[0])
+        programmer['age'] = float(programmer['age'])
+        programmer['orgsz'] = float(programmer['orgsz'])
+        programmer['yoe'] = float(programmer['yoe'])
+        programmer['projects'] = float(programmer['projects'])
         context = inputs_collector.collect(input_df)
 
         data = {
