@@ -21,3 +21,4 @@ if __name__ == '__main__':
     with mlflow.start_run() as run:
       torch.set_float32_matmul_precision("medium")
       cli = ProgrammerCLI(ProgrammerModel, ProgrammerDataModule)
+      
